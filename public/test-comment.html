@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Comment Test - Rebuilt v3.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .version {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .response {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        label {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 Comment Test Page</h1>
+        <div class="version">✅ v3.0 REBUILT - Event Listeners</div>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="commentForm">
+            <label>Comment Content *</label>
+            <textarea id="content" placeholder="Write your comment..." rows="4" required></textarea>
+            
+            <label>User ID *</label>
+            <input type="number" id="userId" value="1" required>
+            
+            <label>Post ID *</label>
+            <input type="number" id="postId" value="3" required>
+            
+            <button type="submit">➕ Create Comment</button>
+        </form>
+        
+        <div id="response" class="response"></div>
+    </div>
+
+    <script>
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Test page loaded - v3.0 REBUILT');
+            
+            const form = document.getElementById('commentForm');
+            form.addEventListener('submit', handleSubmit);
+        });
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            console.log('📝 Form submitted');
+            
+            // Get values
+            const content = document.getElementById('content').value.trim();
+            const userId = parseInt(document.getElementById('userId').value, 10);
+            const postId = parseInt(document.getElementById('postId').value, 10);
+            
+            console.log('Values:', { content, userId, postId });
+            
+            // Validation
+            if (!content) {
+                showMessage('Please enter comment content', false);
+                return;
+            }
+            
+            if (isNaN(userId) || userId <= 0) {
+                showMessage('Please enter valid user ID', false);
+                return;
+            }
+            
+            if (isNaN(postId) || postId <= 0) {
+                showMessage('Please enter valid post ID', false);
+                return;
+            }
+            
+            try {
+                // Make API call
+                console.log('🔄 Making API call...');
+                showMessage('Creating comment...', true);
+                
+                const response = await fetch('http://localhost:3000/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        userId: userId,
+                        postId: postId
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok && data.id) {
+                    // Success
+                    showMessage('✅ Comment created successfully! ID: ' + data.id, true);
+                    document.getElementById('content').value = '';
+                    showResponse(data);
+                } else {
+                    // Error
+                    const errorMsg = data.message || 'Failed to create comment';
+                    showMessage('❌ Error: ' + errorMsg, false);
+                    showResponse(data);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showMessage('❌ Error: ' + error.message, false);
+            }
+        }
+        
+        function showMessage(text, isSuccess) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+            msgDiv.style.display = 'block';
+        }
+        
+        function showResponse(data) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+            responseDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Hybrid ORM Blog API - Complete Dashboard v3.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 5px;
+        }
+
+        .badge.typeorm {
+            background: #2196F3;
+        }
+
+        .badge.mikroorm {
+            background: #FF9800;
+        }
+
+        .badge.cross {
+            background: #E91E63;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .response {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+
+        .response.error {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #ef5350;
+        }
+
+        .response.success {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status.online {
+            background: #4CAF50;
+        }
+
+        .status.offline {
+            background: #f44336;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-divider {
+            border-top: 2px solid #f0f0f0;
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0 10px 0;
+        }
+
+        .message-box {
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message-box.success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .message-box.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Hybrid ORM Blog - Full CRUD Dashboard <span style="font-size: 14px; background: #4CAF50; color: white; padding: 4px 12px; border-radius: 15px; margin-left: 10px;">v3.0 REBUILT ✅</span></h1>
+            <p class="subtitle">TypeORM + MikroORM on MariaDB | Comments Rebuilt From Scratch</p>
+            <div style="margin-top: 15px;">
+                <span class="badge typeorm">TypeORM: Users, Posts</span>
+                <span class="badge mikroorm">MikroORM: Comments, Tags</span>
+                <span class="badge cross">Cross-ORM Enabled</span>
+            </div>
+        </header>
+
+        <div class="info-box">
+            <strong>🎯 Quick Start:</strong> Create a user → Create a post → Add tags → Add comments!
+        </div>
+
+        <div class="grid">
+            <!-- System Health -->
+            <div class="card">
+                <h2>
+                    🏥 System Health
+                    <span id="healthStatus" class="status offline"></span>
+                </h2>
+                <button onclick="testHealth()">Check Health</button>
+                <div id="healthResponse" class="response"></div>
+            </div>
+
+            <!-- Users (TypeORM) -->
+            <div class="card">
+                <h2>👥 Users <span class="badge typeorm">TypeORM</span></h2>
+                
+                <div class="section-title">Create New User</div>
+                <div id="userMessage" class="message-box"></div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="userEmail" placeholder="user@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="userName" placeholder="John Doe" />
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="userBio" placeholder="Tell us about yourself..."></textarea>
+                </div>
+                <button onclick="createUser()">➕ Create User</button>
+
+                <div class="form-divider"></div>
+                <div class="section-title">View Users</div>
+                <button class="secondary" onclick="getUsers()">📋 List All Users</button>
+                
+                <div id="usersResponse" class="response"></div>
+            </div>
+
+            <!-- Posts (TypeORM) -->
+            <div class="card">
+                <h2>📝 Posts <span class="badge typeorm">TypeORM</span></h2>
+                
+                <div class="section-title">Create New Post</div>
+                <div id="postMessage" class="message-box"></div>
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="postTitle" placeholder="My Amazing Post" />
+                </div>
+                <div class="form-group">
+                    <label>Content *</label>
+                    <textarea id="postContent" placeholder="Write your post content here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Author *</label>
+                    <select id="postAuthorId">
+                        <option value="">Loading users...</option>
+                    </select>
+                </div>
+                <button onclick="createPost()">➕ Create Post</button>
+
+                <div class="form-divider"></div>
+                <div class="section-title">View Posts</div>
+                <button class="secondary" onclick="getPosts()">📋 List All Posts</button>
+                
+                <div id="postsResponse" class="response"></div>
+            </div>
+
+            <!-- Comments (MikroORM) -->
+            <div class="card">
+                <h2>💬 Comments <span class="badge mikroorm">MikroORM</span></h2>
+                
+                <div class="section-title">Create New Comment</div>
+                <div id="commentMessage" class="message-box"></div>
+                <div class="form-group">
+                    <label>Comment Content *</label>
+                    <textarea id="commentContent" placeholder="Write your comment..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Post *</label>
+                    <select id="commentPostId">
+                        <option value="">Loading posts...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>User *</label>
+                    <select id="commentUserId">
+                        <option value="">Loading users...</option>
+                    </select>
+                </div>
+                <button id="createCommentBtn">➕ Create Comment</button>
+
+                <div class="form-divider"></div>
+                <div class="section-title">View Comments</div>
+                <button class="secondary" id="getCommentsBtn">📋 List All Comments</button>
+                
+                <div id="commentsResponse" class="response"></div>
+            </div>
+
+            <!-- Tags (MikroORM) -->
+            <div class="card">
+                <h2>🏷️ Tags <span class="badge mikroorm">MikroORM</span></h2>
+                
+                <div class="section-title">Create New Tag</div>
+                <div id="tagMessage" class="message-box"></div>
+                <div class="form-group">
+                    <label>Tag Name *</label>
+                    <input type="text" id="tagName" placeholder="technology" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="tagDescription" placeholder="Tag description..."></textarea>
+                </div>
+                <button onclick="createTag()">➕ Create Tag</button>
+
+                <div class="form-divider"></div>
+                <div class="section-title">View Tags</div>
+                <button class="secondary" onclick="getTags()">📋 List All Tags</button>
+                
+                <div id="tagsResponse" class="response"></div>
+            </div>
+
+            <!-- Post Tags (Cross-ORM) -->
+            <div class="card">
+                <h2>🔗 Link Posts to Tags <span class="badge cross">Cross-ORM</span></h2>
+                
+                <div class="section-title">Link Post to Tag</div>
+                <div id="linkMessage" class="message-box"></div>
+                <div class="form-group">
+                    <label>Post *</label>
+                    <select id="linkPostId">
+                        <option value="">Loading posts...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tag *</label>
+                    <select id="linkTagId">
+                        <option value="">Loading tags...</option>
+                    </select>
+                </div>
+                <button onclick="linkPostToTag()">🔗 Link Post to Tag</button>
+                
+                <div id="postTagsResponse" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        // Cache for dropdown data
+        let users = [];
+        let posts = [];
+        let tags = [];
+
+        // Utility functions
+        function showLoading(elementId) {
+            try {
+                const el = document.getElementById(elementId);
+                if (el) {
+                    el.style.display = 'block';
+                    el.className = 'response';
+                    el.innerHTML = '<div class="spinner"></div><div class="loading">Loading...</div>';
+                }
+            } catch (err) {
+                console.error('showLoading error:', err);
+            }
+        }
+
+        function showResponse(elementId, data, isError) {
+            try {
+                const el = document.getElementById(elementId);
+                if (el) {
+                    el.style.display = 'block';
+                    el.className = isError ? 'response error' : 'response success';
+                    el.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (err) {
+                console.error('showResponse error:', err);
+            }
+        }
+
+        function showMessage(messageId, text, isError) {
+            try {
+                const msgEl = document.getElementById(messageId);
+                if (msgEl) {
+                    msgEl.textContent = text;
+                    msgEl.className = isError ? 'message-box error' : 'message-box success';
+                    msgEl.style.display = 'block';
+                    setTimeout(function() {
+                        msgEl.style.display = 'none';
+                    }, 5000);
+                }
+            } catch (err) {
+                console.error('showMessage error:', err);
+            }
+        }
+
+        async function apiCall(endpoint, options) {
+            try {
+                const opts = options || {};
+                const response = await fetch(API_BASE + endpoint, {
+                    method: opts.method || 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: opts.body
+                });
+                const data = await response.json();
+                return { data: data, error: !response.ok };
+            } catch (error) {
+                console.error('API call error:', error);
+                return { data: { error: error.message }, error: true };
+            }
+        }
+
+        // Load dropdown data
+        async function loadUsers() {
+            try {
+                const result = await apiCall('/users');
+                if (!result.error && Array.isArray(result.data)) {
+                    users = result.data;
+                    updateUserDropdowns();
+                }
+            } catch (err) {
+                console.error('loadUsers error:', err);
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const result = await apiCall('/posts');
+                if (!result.error && Array.isArray(result.data)) {
+                    posts = result.data;
+                    updatePostDropdowns();
+                }
+            } catch (err) {
+                console.error('loadPosts error:', err);
+            }
+        }
+
+        async function loadTags() {
+            try {
+                const result = await apiCall('/tags');
+                if (!result.error && Array.isArray(result.data)) {
+                    tags = result.data;
+                    updateTagDropdowns();
+                }
+            } catch (err) {
+                console.error('loadTags error:', err);
+            }
+        }
+
+        function updateUserDropdowns() {
+            const selects = [
+                document.getElementById('postAuthorId'),
+                document.getElementById('commentUserId')
+            ];
+            
+            selects.forEach(function(select) {
+                if (!select) return;
+                if (users.length > 0) {
+                    let html = '<option value="">Select user...</option>';
+                    users.forEach(function(u) {
+                        html += '<option value="' + u.id + '">' + u.name + ' (' + u.email + ')</option>';
+                    });
+                    select.innerHTML = html;
+                } else {
+                    select.innerHTML = '<option value="">No users - Create one first!</option>';
+                }
+            });
+        }
+
+        function updatePostDropdowns() {
+            const selects = [
+                document.getElementById('commentPostId'),
+                document.getElementById('linkPostId')
+            ];
+            
+            selects.forEach(function(select) {
+                if (!select) return;
+                if (posts.length > 0) {
+                    let html = '<option value="">Select post...</option>';
+                    posts.forEach(function(p) {
+                        html += '<option value="' + p.id + '">' + p.title + '</option>';
+                    });
+                    select.innerHTML = html;
+                } else {
+                    select.innerHTML = '<option value="">No posts - Create one first!</option>';
+                }
+            });
+        }
+
+        function updateTagDropdowns() {
+            const select = document.getElementById('linkTagId');
+            if (!select) return;
+            if (tags.length > 0) {
+                let html = '<option value="">Select tag...</option>';
+                tags.forEach(function(t) {
+                    html += '<option value="' + t.id + '">' + t.name + '</option>';
+                });
+                select.innerHTML = html;
+            } else {
+                select.innerHTML = '<option value="">No tags - Create one first!</option>';
+            }
+        }
+
+        // System Health
+        async function testHealth() {
+            showLoading('healthResponse');
+            const result = await apiCall('/health');
+            showResponse('healthResponse', result.data, result.error);
+            
+            if (!result.error && result.data.status === 'ok') {
+                document.getElementById('healthStatus').className = 'status online';
+            }
+        }
+
+        // Users (TypeORM)
+        async function createUser() {
+            const email = document.getElementById('userEmail').value.trim();
+            const name = document.getElementById('userName').value.trim();
+            const bio = document.getElementById('userBio').value.trim();
+            
+            if (!email || !name) {
+                showMessage('userMessage', '❌ Please fill in email and name', true);
+                return;
+            }
+
+            showLoading('usersResponse');
+            const result = await apiCall('/users', {
+                method: 'POST',
+                body: JSON.stringify({ email: email, name: name, bio: bio || 'No bio provided' })
+            });
+            showResponse('usersResponse', result.data, result.error);
+            
+            if (!result.error) {
+                document.getElementById('userEmail').value = '';
+                document.getElementById('userName').value = '';
+                document.getElementById('userBio').value = '';
+                
+                await loadUsers();
+                showMessage('userMessage', '✅ User created successfully! ID: ' + result.data.id, false);
+            } else {
+                const errMsg = result.data.message || result.data.error || 'Failed to create user';
+                showMessage('userMessage', '❌ Error: ' + errMsg, true);
+            }
+        }
+
+        async function getUsers() {
+            showLoading('usersResponse');
+            const result = await apiCall('/users');
+            showResponse('usersResponse', result.data, result.error);
+            if (!result.error) {
+                users = result.data;
+                updateUserDropdowns();
+            }
+        }
+
+        // Posts (TypeORM)
+        async function createPost() {
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const authorId = parseInt(document.getElementById('postAuthorId').value);
+            
+            if (!title || !content || !authorId) {
+                showMessage('postMessage', '❌ Please fill in all fields', true);
+                return;
+            }
+
+            showLoading('postsResponse');
+            const result = await apiCall('/posts', {
+                method: 'POST',
+                body: JSON.stringify({ title: title, content: content, authorId: authorId })
+            });
+            showResponse('postsResponse', result.data, result.error);
+            
+            if (!result.error) {
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                
+                await loadPosts();
+                showMessage('postMessage', '✅ Post created successfully! ID: ' + result.data.id, false);
+            } else {
+                const errMsg = result.data.message || result.data.error || 'Failed to create post';
+                showMessage('postMessage', '❌ Error: ' + errMsg, true);
+            }
+        }
+
+        function getPosts() {
+            showLoading('postsResponse');
+            apiCall('/posts').then(function(result) {
+                showResponse('postsResponse', result.data, result.error);
+                if (!result.error) {
+                    posts = result.data;
+                    updatePostDropdowns();
+                }
+            });
+        }
+
+        // Comments (MikroORM) - Completely rebuilt
+        function initializeCommentHandlers() {
+            const createBtn = document.getElementById('createCommentBtn');
+            const getBtn = document.getElementById('getCommentsBtn');
+            
+            if (createBtn) {
+                createBtn.addEventListener('click', handleCreateComment);
+            }
+            
+            if (getBtn) {
+                getBtn.addEventListener('click', handleGetComments);
+            }
+        }
+
+        async function handleCreateComment() {
+            try {
+                // Get form values
+                const contentInput = document.getElementById('commentContent');
+                const postIdSelect = document.getElementById('commentPostId');
+                const userIdSelect = document.getElementById('commentUserId');
+                
+                const content = contentInput ? contentInput.value.trim() : '';
+                const postId = postIdSelect ? parseInt(postIdSelect.value, 10) : NaN;
+                const userId = userIdSelect ? parseInt(userIdSelect.value, 10) : NaN;
+                
+                // Validation
+                if (!content) {
+                    showMessage('commentMessage', '❌ Please enter comment content', true);
+                    return;
+                }
+                if (!postId || isNaN(postId)) {
+                    showMessage('commentMessage', '❌ Please select a post', true);
+                    return;
+                }
+                if (!userId || isNaN(userId)) {
+                    showMessage('commentMessage', '❌ Please select a user', true);
+                    return;
+                }
+
+                // Show loading
+                showLoading('commentsResponse');
+                
+                // Make API call
+                const result = await apiCall('/comments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content: content,
+                        postId: postId,
+                        userId: userId
+                    })
+                });
+                
+                // Show response
+                showResponse('commentsResponse', result.data, result.error);
+                
+                // Handle result
+                if (!result.error && result.data && result.data.id) {
+                    if (contentInput) contentInput.value = '';
+                    showMessage('commentMessage', '✅ Comment created successfully! ID: ' + result.data.id, false);
+                } else {
+                    const errMsg = result.data && result.data.message ? result.data.message : 'Failed to create comment';
+                    showMessage('commentMessage', '❌ Error: ' + errMsg, true);
+                }
+            } catch (error) {
+                console.error('Comment creation error:', error);
+                showMessage('commentMessage', '❌ Error: ' + error.message, true);
+            }
+        }
+
+        async function handleGetComments() {
+            try {
+                showLoading('commentsResponse');
+                const result = await apiCall('/comments');
+                showResponse('commentsResponse', result.data, result.error);
+            } catch (error) {
+                console.error('Get comments error:', error);
+                showResponse('commentsResponse', null, true);
+            }
+        }
+
+        // Tags (MikroORM)
+        function createTag() {
+            const name = document.getElementById('tagName').value.trim();
+            const description = document.getElementById('tagDescription').value.trim();
+            
+            if (!name) {
+                showMessage('tagMessage', '❌ Please enter a tag name', true);
+                return;
+            }
+
+            showLoading('tagsResponse');
+            apiCall('/tags', {
+                method: 'POST',
+                body: JSON.stringify({ name: name, description: description || 'No description' })
+            }).then(function(result) {
+                showResponse('tagsResponse', result.data, result.error);
+                
+                if (!result.error) {
+                    document.getElementById('tagName').value = '';
+                    document.getElementById('tagDescription').value = '';
+                    
+                    loadTags();
+                    showMessage('tagMessage', '✅ Tag created successfully! ID: ' + result.data.id, false);
+                } else {
+                    const errMsg = result.data.message || result.data.error || 'Failed to create tag';
+                    showMessage('tagMessage', '❌ Error: ' + errMsg, true);
+                }
+            });
+        }
+
+        function getTags() {
+            showLoading('tagsResponse');
+            apiCall('/tags').then(function(result) {
+                showResponse('tagsResponse', result.data, result.error);
+                if (!result.error) {
+                    tags = result.data;
+                    updateTagDropdowns();
+                }
+            });
+        }
+
+        // Post-Tags (Cross-ORM)
+        function linkPostToTag() {
+            const postId = parseInt(document.getElementById('linkPostId').value);
+            const tagId = parseInt(document.getElementById('linkTagId').value);
+            
+            if (!postId || !tagId) {
+                showMessage('linkMessage', '❌ Please select both post and tag', true);
+                return;
+            }
+
+            showLoading('postTagsResponse');
+            apiCall('/posts/' + postId + '/tags/' + tagId, {
+                method: 'POST'
+            }).then(function(result) {
+                showResponse('postTagsResponse', result.data, result.error);
+                
+                if (!result.error) {
+                    showMessage('linkMessage', '✅ Post linked to tag successfully!', false);
+                } else {
+                    const errMsg = result.data.message || result.data.error || 'Failed to link';
+                    showMessage('linkMessage', '❌ Error: ' + errMsg, true);
+                }
+            });
+        }
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            testHealth();
+            loadUsers();
+            loadPosts();
+            loadTags();
+            initializeCommentHandlers(); // Initialize comment event handlers
+        });
+    </script>
+</body>
+</html>
