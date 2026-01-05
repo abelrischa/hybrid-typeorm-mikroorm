@@ -24,7 +24,7 @@
     "mikro:migration:up": "mikro-orm migration:up",
     "mikro:schema:update": "mikro-orm schema:update --run",
     "seed": "ts-node src/seed.ts",
-    "seed:large": "ts-node src/seed.ts 1000000"
+    "seed:large": "ts-node src/seed.ts 15000"
   },
   "dependencies": {
     "@mikro-orm/core": "^6.3.0",
