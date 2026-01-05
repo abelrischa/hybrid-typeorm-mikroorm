@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EntityManager } from '@mikro-orm/mysql';
-import { Post } from '../typeorm/entities/post.entity';
-import { CreatePostDto } from '../dto/create-post.dto';
+import { Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EntityManager } from "@mikro-orm/mysql";
+import { Post } from "../typeorm/entities/post.entity";
+import { CreatePostDto } from "../dto/create-post.dto";
 
 @Injectable()
 export class PostsService {
@@ -11,12 +11,12 @@ export class PostsService {
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
     @Inject(EntityManager)
-    private readonly mikroEm: EntityManager,
+    private readonly mikroEm: EntityManager
   ) {}
 
   async create(createPostDto: CreatePostDto): Promise<Post> {
     const { tagIds, ...postData } = createPostDto;
-    
+
     // Create post using TypeORM
     const post = this.postRepository.create(postData);
     const savedPost = await this.postRepository.save(post);
@@ -32,26 +32,18 @@ export class PostsService {
   async addTagsToPost(postId: number, tagIds: number[]): Promise<void> {
     // CROSS-ORM INTERACTION: Insert into post_tags using MikroORM connection
     for (const tagId of tagIds) {
-      await this.mikroEm
-        .getConnection()
-        .execute(
-          `INSERT IGNORE INTO post_tags (post_id, tag_id, created_at) 
+      await this.mikroEm.getConnection().execute(
+        `INSERT IGNORE INTO post_tags (post_id, tag_id, created_at)
            VALUES (?, ?, NOW())`,
-          [postId, tagId]
-        );
+        [postId, tagId]
+      );
     }
   }
 
   async findAll(): Promise<Post[]> {
     const posts = await this.postRepository.find({
-      relations: ['author'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
-
-    // CROSS-ORM INTERACTION: Enrich with MikroORM data
-    for (const post of posts) {
-      await this.enrichPostWithMikroData(post);
-    }
 
     return posts;
   }
@@ -59,15 +51,11 @@ export class PostsService {
   async findOne(id: number): Promise<Post> {
     const post = await this.postRepository.findOne({
       where: { id },
-      relations: ['author'],
     });
 
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
-
-    // CROSS-ORM INTERACTION: Enrich with MikroORM data
-    await this.enrichPostWithMikroData(post);
 
     return post;
   }
@@ -76,25 +64,21 @@ export class PostsService {
     const post = await this.findOne(id);
 
     // CROSS-ORM INTERACTION: Fetch full comments and tags from MikroORM
-    const comments = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT c.*, u.name as author_name, u.email as author_email
+    const comments = await this.mikroEm.getConnection().execute(
+      `SELECT c.*, u.name as author_name, u.email as author_email
          FROM comments c
          LEFT JOIN users u ON c.user_id = u.id
          WHERE c.post_id = ?
          ORDER BY c.created_at DESC`,
-        [id]
-      );
+      [id]
+    );
 
-    const tags = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT t.* FROM tags t
+    const tags = await this.mikroEm.getConnection().execute(
+      `SELECT t.* FROM tags t
          INNER JOIN post_tags pt ON pt.tag_id = t.id
          WHERE pt.post_id = ?`,
-        [id]
-      );
+      [id]
+    );
 
     return {
       ...post,
@@ -103,34 +87,10 @@ export class PostsService {
     };
   }
 
-  private async enrichPostWithMikroData(post: Post): Promise<void> {
-    // Get comment count
-    const commentResult = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT COUNT(*) as count FROM comments WHERE post_id = ?`,
-        [post.id]
-      );
-    post.commentCount = parseInt(commentResult[0].count);
-
-    // Get tag count and names
-    const tagResult = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT t.id, t.name 
-         FROM tags t
-         INNER JOIN post_tags pt ON pt.tag_id = t.id
-         WHERE pt.post_id = ?`,
-        [post.id]
-      );
-    post.tags = tagResult;
-    post.tagCount = tagResult.length;
-  }
-
   async update(id: number, updateData: Partial<CreatePostDto>): Promise<Post> {
     const { tagIds, ...postData } = updateData;
     const post = await this.findOne(id);
-    
+
     Object.assign(post, postData);
     const updated = await this.postRepository.save(post);
 
@@ -140,7 +100,7 @@ export class PostsService {
       await this.mikroEm
         .getConnection()
         .execute(`DELETE FROM post_tags WHERE post_id = ?`, [id]);
-      
+
       // Add new tags
       if (tagIds.length > 0) {
         await this.addTagsToPost(id, tagIds);
@@ -159,13 +119,8 @@ export class PostsService {
   async findByAuthor(authorId: number): Promise<Post[]> {
     const posts = await this.postRepository.find({
       where: { authorId },
-      relations: ['author'],
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
-
-    for (const post of posts) {
-      await this.enrichPostWithMikroData(post);
-    }
 
     return posts;
   }
@@ -174,12 +129,12 @@ export class PostsService {
   async linkToTag(postId: number, tagId: number): Promise<{ message: string }> {
     // Verify post exists (TypeORM)
     await this.findOne(postId);
-    
+
     // Verify tag exists (MikroORM)
     const tagExists = await this.mikroEm
       .getConnection()
       .execute(`SELECT id FROM tags WHERE id = ?`, [tagId]);
-    
+
     if (!tagExists || tagExists.length === 0) {
       throw new NotFoundException(`Tag with ID ${tagId} not found`);
     }
@@ -198,17 +153,14 @@ export class PostsService {
   // Get all tags for a post
   async getPostTags(postId: number): Promise<any[]> {
     await this.findOne(postId); // Verify post exists
-    
-    const tags = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT t.* FROM tags t
+
+    const tags = await this.mikroEm.getConnection().execute(
+      `SELECT t.* FROM tags t
          INNER JOIN post_tags pt ON pt.tag_id = t.id
          WHERE pt.post_id = ?`,
-        [postId]
-      );
+      [postId]
+    );
 
     return tags;
   }
 }
-
