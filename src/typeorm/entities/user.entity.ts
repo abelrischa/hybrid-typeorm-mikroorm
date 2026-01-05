@@ -5,10 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from 'typeorm';
-import { Post } from './post.entity';
+} from "typeorm";
+import { Post } from "../../mikro-orm/entities/post.entity";
 
-@Entity('users')
+@Entity("users")
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,16 +22,12 @@ export class User {
   @Column({ nullable: true })
   bio: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
-
-  @OneToMany(() => Post, (post) => post.author)
-  posts: Post[];
 
   // Virtual property - will be populated from MikroORM Comments
   commentCount?: number;
 }
-

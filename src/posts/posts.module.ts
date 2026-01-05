@@ -1,14 +1,13 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostsController } from './posts.controller';
-import { PostsService } from './posts.service';
-import { Post } from '../typeorm/entities/post.entity';
+import { Module } from "@nestjs/common";
+import { PostsController } from "./posts.controller";
+import { PostsService } from "./posts.service";
+import { Post } from "../mikro-orm/entities/post.entity";
+import { MikroOrmModule } from "@mikro-orm/nestjs";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post])],
+  imports: [MikroOrmModule.forFeature([Post])],
   controllers: [PostsController],
   providers: [PostsService],
   exports: [PostsService],
 })
 export class PostsModule {}
-

@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EntityManager } from '@mikro-orm/mysql';
-import { User } from '../typeorm/entities/user.entity';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { EntityManager } from "@mikro-orm/mysql";
+import { User } from "../typeorm/entities/user.entity";
+import { CreateUserDto } from "../dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -11,7 +11,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @Inject(EntityManager)
-    private readonly mikroEm: EntityManager,
+    private readonly mikroEm: EntityManager
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -20,15 +20,12 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find({
-      relations: ['posts'],
-    });
+    return await this.userRepository.find({});
   }
 
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['posts'],
     });
 
     if (!user) {
@@ -38,8 +35,10 @@ export class UsersService {
     // CROSS-ORM INTERACTION: Get comment count from MikroORM
     const commentCount = await this.mikroEm
       .getConnection()
-      .execute(`SELECT COUNT(*) as count FROM comments WHERE user_id = ?`, [id]);
-    
+      .execute(`SELECT COUNT(*) as count FROM comments WHERE user_id = ?`, [
+        id,
+      ]);
+
     user.commentCount = parseInt(commentCount[0].count);
 
     return user;
@@ -49,16 +48,14 @@ export class UsersService {
     const user = await this.findOne(id);
 
     // CROSS-ORM INTERACTION: Fetch comments from MikroORM
-    const comments = await this.mikroEm
-      .getConnection()
-      .execute(
-        `SELECT c.*, p.title as post_title 
-         FROM comments c 
-         LEFT JOIN posts p ON c.post_id = p.id 
-         WHERE c.user_id = ? 
+    const comments = await this.mikroEm.getConnection().execute(
+      `SELECT c.*, p.title as post_title
+         FROM comments c
+         LEFT JOIN posts p ON c.post_id = p.id
+         WHERE c.user_id = ?
          ORDER BY c.created_at DESC`,
-        [id]
-      );
+      [id]
+    );
 
     return {
       ...user,
@@ -77,4 +74,3 @@ export class UsersService {
     await this.userRepository.remove(user);
   }
 }
-

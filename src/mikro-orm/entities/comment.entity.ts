@@ -1,23 +1,27 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 
-@Entity({ tableName: 'comments' })
+@Entity({ tableName: "comments" })
 export class Comment {
   @PrimaryKey()
   id!: number;
 
-  @Property({ type: 'text' })
+  @Property({ type: "text" })
   content: string;
 
-  @Property({ columnType: 'int', fieldName: 'user_id' })
+  @Property({ columnType: "int", fieldName: "user_id" })
   userId: number;
 
-  @Property({ columnType: 'int', fieldName: 'post_id' })
+  @Property({ columnType: "int", fieldName: "post_id" })
   postId: number;
 
-  @Property({ fieldName: 'created_at', type: 'datetime' })
+  @Property({ fieldName: "created_at", type: "datetime" })
   createdAt: Date = new Date();
 
-  @Property({ fieldName: 'updated_at', type: 'datetime', onUpdate: () => new Date() })
+  @Property({
+    fieldName: "updated_at",
+    type: "datetime",
+    onUpdate: () => new Date(),
+  })
   updatedAt: Date = new Date();
 
   constructor(content: string, userId: number, postId: number) {
@@ -30,4 +34,3 @@ export class Comment {
   author?: any;
   post?: any;
 }
-
